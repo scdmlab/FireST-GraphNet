@@ -1,0 +1,15 @@
+# Shared model, training, evaluation, and visualization dependencies.
+torch
+torchvision
+numpy
+pandas
+PyYAML
+tqdm
+scipy
+matplotlib
+Pillow
+scikit-image
+
+# Optional experiment-specific packages:
+# monai
+# torch-geometric

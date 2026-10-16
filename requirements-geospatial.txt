@@ -1,0 +1,9 @@
+# Optional: data preparation and weather retrieval.
+rasterio
+pyproj
+xarray
+requests
+herbie-data
+cfgrib
+netCDF4
+kaggle

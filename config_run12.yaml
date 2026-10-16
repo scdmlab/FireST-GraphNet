@@ -1,0 +1,87 @@
+# FireST-GraphNet  Run12 configuration
+# ─────────────────────────────────────────────────────────────
+#
+# Run12 改进方向 (vs Run11):
+#   1. BCE → Focal BCE (focal_gamma=2.0)  消除易例背景像素的梯度主导
+#   2. pos_weight: 4.5 → 5.5             恢复对火灾像素的惩罚强度
+#   3. boundary_weight: 0.30             新增边界感知损失，惩罚火锋对齐误差
+#   4. temporal_weight: 0.08             新增帧间时序一致性损失，抑制模糊 blob
+#   5. horizon_decay: 0.08              近步 t+1 权重最高，远步逐步衰减
+#   6. dice_weight: 0.0                  移除 Dice（Run11 证明大权重 Dice 有害）
+#   7. pinn.start_epoch: 2              PINN 更早介入（BA 单调性约束）
+#   8. pinn.warmup_epochs: 4            更快升温，前 6 epoch 即达最大物理权重
+
+data:
+  root: "C:\\Users\\22125\\Desktop\\FireST-GraphNet"
+  T_in: 9
+  T_out: 1
+  img_size: 256
+  num_bands: 8
+  label_channel: 1
+  val_split: 0.1
+  num_workers: 0
+  pin_memory: true
+
+model:
+  in_channels: 8
+  encoder_channels: [32, 64, 128]
+  use_cbam: true
+  patch_size: 8
+  k_neighbors: 8
+  gnn_hidden: 128
+  gnn_layers: 2
+  lstm_hidden: 256
+  lstm_layers: 2
+  lstm_dropout: 0.2
+  decoder_channels: [128, 64, 32]
+  out_channels: 1
+
+training:
+  batch_size: 8
+  epochs: 60
+  lr: 0.0003
+  weight_decay: 0.001
+  scheduler: cosine
+
+  # ── Class-imbalance & supervision ────────────────────────────
+  pos_weight: 5.5          # restored toward run9's effective balance
+  focal_gamma: 2.0         # Focal BCE: down-weights easy-negative pixels
+  dice_weight: 0.0         # disabled (run11 proved large Dice is harmful)
+
+  # ── Firefront emphasis ────────────────────────────────────────
+  boundary_weight: 0.30    # boundary-aware loss: 4× penalty at GT front edges
+  temporal_weight: 0.08    # temporal delta consistency: L1(pred_Δ, gt_Δ)
+  horizon_decay: 0.08      # exp-decay horizon weights: w_h = exp(-0.08*h)
+
+  # ── Stability ─────────────────────────────────────────────────
+  grad_clip: 0.5
+  mixed_precision: true
+  save_every: 5
+  patience: 15
+  val_every: 1
+  metric_every: 5
+
+forecast:
+  enabled: true
+  T_in: 10
+  horizon: 20
+  future_channels: 4
+  future_emb_dim: 64
+  weather_channels: 4
+  weather_emb_dim: 64
+  inference_mode: "firepred"
+  in_channels: 28
+
+pinn:
+  gamma: 0.25
+  pde_D: 0.01
+  pde_mu: 0.12
+  beta_max: 0.01
+  eta_max: 0.15            # BA monotonicity (most physically meaningful)
+  xi_max: 0.10
+  warmup_epochs: 4         # faster ramp → full weight by epoch 6
+  start_epoch: 2           # earlier activation (was 3 in run11)
+
+seed: 42
+device: "cuda"
+output_dir: outputs/run12

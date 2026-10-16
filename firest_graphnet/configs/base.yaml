@@ -1,0 +1,141 @@
+# FireST-GraphNet base configuration
+# ─────────────────────────────────────────────────────────────
+#
+# SEMANTIC ALIGNMENT DESIGN:
+#   - Encoder: fire(8 VIIRS) + aux(19 FirePred) + static(1 LULC) = 28ch
+#   - Future decoder: 4ch canonical [temp, u_wind, v_wind, rh] for ALL sources
+#   - Training:  4ch extracted from FirePred (bands 5,9+10→u,v,7)
+#   - Inference: 4ch from HRRR (TMP,UGRD,VGRD,RH) or WN2 (temp,u,v,rh)
+#
+
+data:
+  root: "C:\\Users\\22125\\Desktop\\FireST-GraphNet"
+  T_in: 9          # number of input frames (historical)
+  T_out: 1         # number of output frames to predict
+  img_size: 256
+  num_bands: 8     # spectral / feature bands per sample
+  label_channel: 1 # index of binary fire mask in label array
+  val_split: 0.1   # fraction of train used for val if dataset_val absent
+  num_workers: 0   # set >0 on Linux/macOS for speed; must be 0 on Windows
+  pin_memory: true
+
+model:
+  # Encoder
+  in_channels: 8
+  encoder_channels: [32, 64, 128]
+  use_cbam: true
+
+  # Graph
+  patch_size: 8
+  k_neighbors: 8
+  gnn_hidden: 128
+  gnn_layers: 2
+
+  # Temporal
+  lstm_hidden: 256
+  lstm_layers: 2
+  lstm_dropout: 0.1
+
+  # Decoder
+  decoder_channels: [128, 64, 32]
+  out_channels: 1
+
+training:
+  batch_size: 4
+  epochs: 50
+  lr: 0.001
+  weight_decay: 0.0001
+  scheduler: cosine         # cosine | step
+  step_size: 15
+  gamma: 0.5
+  pos_weight: 10.0          # for BCEWithLogitsLoss (fire class imbalance)
+  grad_clip: 1.0
+  mixed_precision: false
+  save_every: 5
+  patience: 15              # early stopping patience (0 = off)
+
+# ─────────────────────────────────────────────────────────────
+#  Forecast-conditioned mode  (used with --mode forecast)
+#
+#  ALL sources (training + inference) use the same 4-channel
+#  canonical future conditioning: [temp, u_wind, v_wind, rh].
+#
+#  TRAINING uses 4ch extracted from FirePred 19-band data.
+#  INFERENCE uses 4ch directly from HRRR or WeatherNext2.
+# ─────────────────────────────────────────────────────────────
+forecast:
+  enabled: false
+  T_in: 10                           # historical frames
+  horizon: 20                        # future prediction steps
+  # Future condition branch (semantically aligned 4ch)
+  future_channels: 4                 # canonical: [temp, u, v, rh]
+  future_emb_dim: 64                 # future-condition encoder output dim
+  # Inference mode selector
+  inference_mode: "firepred"         # firepred | hrrr | weathernext2
+  in_channels: 1                     # AF input channels for forecast mode
+
+# ─────────────────────────────────────────────────────────────
+#  FirePred variable classification
+#
+#  19-band breakdown used for dynamic extraction and
+#  encoder/decoder variable assignment.
+# ─────────────────────────────────────────────────────────────
+firepred:
+  # Static terrain (never changes between frames)
+  static_bands: [0, 1, 2]           # DEM, Slope, Aspect
+
+  # Slow-changing vegetation/fuel (minimal inter-frame variation)
+  slow_bands: [3, 13, 16]           # Canopy, FuelModel, NDVI
+
+  # Dynamic but NOT forecastable by NWP models
+  dynamic_non_forecastable: [4, 11, 12, 14, 15]  # ERC, FuelMoist, PDSI, DeadFuel, VPD
+
+  # Dynamic forecastable — superset available in FirePred
+  dynamic_forecastable: [5, 6, 7, 8, 9, 10, 17, 18]
+  #                      Temp, Dew, RH, Precip, WSpd, WDir, SoilT, Snow
+
+  # Canonical 4ch dynamic future (aligned with HRRR/WN2)
+  future_dynamic_bands:
+    temperature: 5        # → HRRR TMP      / WN2 temperature_2m
+    wind_speed: 9         # derived: u = spd * sin(dir)
+    wind_direction: 10    # derived: v = spd * cos(dir)
+    humidity: 7           # → HRRR RH       / WN2 relative_humidity_2m
+
+# ─────────────────────────────────────────────────────────────
+#  Data source specifications (inference)
+# ─────────────────────────────────────────────────────────────
+sources:
+  firepred:
+    description: "TS-SatFire FirePred 19-band (training source)"
+    future_channels: 4    # extracted dynamic subset
+    channel_order: [temperature, u_wind, v_wind, humidity]
+    notes: "u,v derived from wind speed + direction bands"
+
+  hrrr:
+    description: "NOAA HRRR 4-variable NWP forecast"
+    future_channels: 4
+    channel_order: [TMP, UGRD, VGRD, RH]
+    notes: "DOY climatology from hrrr_cache/climatology/"
+
+  weathernext2:
+    description: "Google WeatherNext2 4-variable forecast"
+    future_channels: 4
+    channel_order: [temperature_2m, u10, v10, relative_humidity_2m]
+    notes: "PLACEHOLDER — API not yet public"
+
+# ─────────────────────────────────────────────────────────────
+#  PINN — Physics-Informed Neural Network constraints
+# ─────────────────────────────────────────────────────────────
+pinn:
+  gamma: 0.3                # BA update rate (fire → burn conversion)
+  pde_D: 0.01               # diffusion coefficient
+  pde_mu: 0.1               # decay rate
+  beta_max: 0.01            # max PDE residual weight
+  eta_max: 0.1              # max BA monotonicity weight
+  xi_max: 0.05              # max AF-BA mask weight
+  warmup_epochs: 10         # PINN warmup duration
+  start_epoch: 5            # first epoch with PINN > 0
+
+seed: 42
+device: "auto"              # auto | cuda | cpu
+output_dir: "outputs"

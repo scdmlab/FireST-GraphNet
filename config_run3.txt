@@ -1,0 +1,53 @@
+# ── 2a. Load config (auto-adjusted for dataset size) ──
+import yaml, torch
+from pathlib import Path
+
+cfg_path = Path(WORKSPACE) / 'firest_graphnet' / 'configs' / 'base.yaml'
+with open(cfg_path) as f:
+    cfg = yaml.safe_load(f)
+
+cfg['data']['root'] = str(data_root)
+cfg['forecast']['enabled'] = True
+cfg['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+try:
+    cfg['forecast']['T_in']    = RECOMMENDED_T_IN
+    cfg['forecast']['horizon'] = RECOMMENDED_HORIZON
+    print(f"Using dataset-sized window: T_in={RECOMMENDED_T_IN}, horizon={RECOMMENDED_HORIZON}")
+except NameError:
+    print(f"Using config defaults: T_in={cfg['forecast']['T_in']}, horizon={cfg['forecast']['horizon']}")
+
+# ── Training hyper-params — Run 3 ────────────────────────────────────────
+# Run 2 diagnosis:
+#   val_loss plateaued 0.38–0.48 (better than R1 but not declining)
+#   best val IoU 0.220 @ ep20 — no improvement over R1 (0.245)
+#   precision still low (0.17–0.39): pos_weight=5 still too aggressive
+#   train_recall 0.82 vs val_recall 0.45 → still overfitting
+# Fixes:
+#   pos_weight 5→2 (less fire-bias, force precision↑)
+#   weight_decay 5e-4→1e-3 (more L2 regularization)
+#   lr 5e-4→3e-4 (gentler start to avoid early overfit)
+#   patience 5→8 (give more time since val IoU oscillates)
+cfg['training']['epochs']          = 80
+cfg['training']['batch_size']      = 16
+cfg['training']['lr']              = 3e-4   # was 5e-4
+cfg['training']['weight_decay']    = 1e-3   # was 5e-4
+cfg['training']['pos_weight']      = 2.0    # was 5.0 → force precision up
+cfg['training']['patience']        = 8      # was 5
+cfg['training']['mixed_precision'] = True
+cfg['training']['val_every']       = 2
+cfg['training']['metric_every']    = 20
+cfg['pinn']['beta_max']            = 0.05
+cfg['pinn']['eta_max']             = 0.2
+cfg['model']['lstm_dropout']       = 0.3    # was default ~0.1
+
+DEVICE = torch.device(cfg['device'])
+fcfg = cfg['forecast']
+dcfg = cfg['data']
+
+print(f"Config loaded | Device: {DEVICE}")
+print(f"lr={cfg['training']['lr']} | pos_weight={cfg['training']['pos_weight']} | weight_decay={cfg['training']['weight_decay']}")
+print(f"epochs={cfg['training']['epochs']} | patience={cfg['training']['patience']} val-checks | lstm_dropout={cfg['model']['lstm_dropout']}")
+print(f"AMP: {cfg['training']['mixed_precision']} | val_every={cfg['training']['val_every']}")
+print(f"Forecast: T_in={fcfg['T_in']}, horizon={fcfg['horizon']}, future_ch={fcfg['future_channels']}")
+print(f"Data root: {cfg['data']['root']}")
