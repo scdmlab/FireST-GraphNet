@@ -19,8 +19,6 @@ FireST-GraphNet combines satellite image time series, environmental information,
 | `data_tools/` | Data preparation instructions, alignment checks, and Colab workflows |
 | `scripts/` | Figure-processing utilities |
 | `postprocess_af_inference_exports*.ipynb` | Metrics and visualization from previously exported AF predictions |
-| `create_notebook_v*.py`, `_build_*.py` | Experiment notebook generators, including inline model definitions |
-| `config_run*` | Saved development-run configurations |
 
 The source files retain their original experiment layout. Notebook outputs and execution metadata have been cleared for publication. Local data, checkpoints, credentials, environments, caches, manuscript drafts, and experiment-output directories are not included.
 
@@ -95,7 +93,7 @@ For the original component smoke check:
 python smoke_test.py
 ```
 
-The Colab notebooks mount Google Drive and use configurable project/data paths. The AF postprocessing notebooks consume already-exported predictions and ground truth; they do not perform training or inference. Notebook generators contain author-machine output paths that must be changed before use.
+The Colab notebooks mount Google Drive and use configurable project/data paths. The AF postprocessing notebooks consume already-exported predictions and ground truth; they do not perform training or inference.
 
 ## Experiment reproducibility
 
@@ -111,4 +109,4 @@ Corresponding author: Qunying Huang, <qhuang46@wisc.edu>.
 
 ## License
 
-The existing academic research license is preserved in `LICENSE`. It permits non-commercial academic research and educational use; see the license for its complete terms.
+The source code and associated software documentation are distributed under the [MIT License](LICENSE). Copyright (c) 2026 Tang Sui. Third-party data and dependencies retain their original licenses.

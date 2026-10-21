@@ -178,4 +178,4 @@ If you use this code, please cite:
 
 ## License
 
-Research use only.
+The source code is distributed under the MIT License in the repository-root `LICENSE` file. Copyright (c) 2026 Tang Sui. Third-party data and dependencies retain their original licenses.
