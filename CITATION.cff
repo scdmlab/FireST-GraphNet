@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Please cite this repository and the associated FireST-GraphNet manuscript when using this work. Please also cite TS-SatFire when using the dataset."
+type: software
+title: "FireST-GraphNet: Physics-informed Spatiotemporal Graph Neural Network for Active Fire Detection from Multi-Source Remote Sensing"
+license: CC-BY-4.0
+repository-code: "https://github.com/scdmlab/FireST-GraphNet"
+url: "https://github.com/scdmlab/FireST-GraphNet"
+authors:
+  - family-names: Sui
+    given-names: Tang
+  - family-names: Yang
+    given-names: Songxi
+  - family-names: Gao
+    given-names: Song
+  - family-names: Stoy
+    given-names: Paul C.
+  - family-names: Huang
+    given-names: Qunying

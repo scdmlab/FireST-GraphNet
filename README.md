@@ -99,14 +99,21 @@ The Colab notebooks mount Google Drive and use configurable project/data paths. 
 
 `base.yaml` and the command examples above are shared development defaults, not a claim that the default invocation reproduces every table in the manuscript. Match the original experiment's model definition, input/label convention, history length, graph settings, normalization, loss, checkpoint-selection procedure, evaluation split, and calibration settings. In particular, retain the original training configuration when loading a checkpoint and fit any decision-rule parameters on validation data.
 
-Pretrained weights and full experiment outputs are not bundled in this source release. Reproducing numerical results requires the corresponding prepared data, run configuration, and checkpoint or a new training run. No fresh training or reproduction of the reported manuscript scores was performed as part of this repository upload.
+Pretrained weights and full experiment outputs are not bundled in this source release. Reproducing numerical results requires the corresponding prepared data, run configuration, and checkpoint or a new training run.
 
 ## Citation and contact
 
-Please cite the associated manuscript by its title above. Publication details will be added when available. Please also cite TS-SatFire when using the dataset.
+Citation metadata for this repository is provided in [CITATION.cff](CITATION.cff). Please also cite the associated manuscript by its title above and cite TS-SatFire when using the dataset.
 
 Corresponding author: Qunying Huang, <qhuang46@wisc.edu>.
 
 ## License
 
-The source code and associated software documentation are distributed under the [MIT License](LICENSE). Copyright (c) 2026 Tang Sui. Third-party data and dependencies retain their original licenses.
+The source code, configurations, data splits and documentation in this repository are released under the Creative Commons Attribution 4.0 International licence (CC BY 4.0; see LICENSE). Copyright (c) 2026 Tang Sui. Third-party data and code retain their original licences; the TS-SatFire dataset is distributed by its authors under CC BY 4.0.
+
+External libraries used by the following files retain their upstream licences:
+
+| Repository path | External library | Upstream licence |
+| --- | --- | --- |
+| `_build_swinunetr_feature48_notebook.py` | MONAI (`SwinUNETR` import) | [Apache-2.0](https://github.com/Project-MONAI/MONAI/blob/dev/LICENSE) |
+| `firest_graphnet/models/graph_modules.py` | PyTorch Geometric (`knn_graph` and `MessagePassing` imports) | [MIT](https://github.com/pyg-team/pytorch_geometric/blob/master/LICENSE) |

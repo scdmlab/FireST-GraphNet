@@ -170,12 +170,13 @@ If you use this code, please cite:
 
 ```
 @article{firest_graphnet2026,
-    title={FireST-GraphNet: Wildfire Progression Prediction via a Temporal
-           Graph Neural Network with Sequence Learning},
+    title={FireST-GraphNet: Physics-informed Spatiotemporal Graph Neural Network
+           for Active Fire Detection from Multi-Source Remote Sensing},
+    author={Sui, Tang and Yang, Songxi and Gao, Song and Stoy, Paul C. and Huang, Qunying},
     year={2026}
 }
 ```
 
 ## License
 
-The source code is distributed under the MIT License in the repository-root `LICENSE` file. Copyright (c) 2026 Tang Sui. Third-party data and dependencies retain their original licenses.
+The source code is distributed under the Creative Commons Attribution 4.0 International licence (CC BY 4.0) in the repository-root `LICENSE` file. Copyright (c) 2026 Tang Sui. Third-party data and dependencies retain their original licences; see the repository-root README for details.
