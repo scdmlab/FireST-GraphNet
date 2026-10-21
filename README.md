@@ -109,7 +109,7 @@ Corresponding author: Qunying Huang, <qhuang46@wisc.edu>.
 
 ## License
 
-The source code, configurations, data splits and documentation in this repository are released under the Creative Commons Attribution 4.0 International licence (CC BY 4.0; see LICENSE). Copyright (c) 2026 Tang Sui. Third-party data and code retain their original licences; the TS-SatFire dataset is distributed by its authors under CC BY 4.0.
+The source code, configurations and documentation in this repository are released under the Creative Commons Attribution 4.0 International licence (CC BY 4.0; see LICENSE). Copyright (c) 2026 Tang Sui. Third-party data and code retain their original licences; the TS-SatFire dataset is distributed by its authors under CC BY 4.0.
 
 External libraries used by the following files retain their upstream licences:
 
